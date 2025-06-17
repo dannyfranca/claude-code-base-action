@@ -2,33 +2,37 @@
 
 Sync this fork with the upstream Anthropic repository, merge changes, and update the beta tag.
 
-## Steps to execute:
+## Two-step process:
 
-1. Check if upstream remote exists, add if needed:
-   ```bash
-   git remote add upstream https://github.com/anthropics/claude-code-base-action.git
-   ```
+### Step 1: Attempt merge
+```bash
+./.claude/commands/sync-upstream-merge.sh
+```
 
-2. Fetch latest from upstream:
-   ```bash
-   git fetch upstream
-   ```
+**If successful (exit code 0)**: Automatically proceed to Step 2.
 
-3. Ensure on main branch and stash any local changes
+**If conflicts (exit code 1)**: 
+1. Show conflicting files from script output
+2. Show conflict details using `git diff`
+3. Remind user: "This fork adds OAuth support. When resolving conflicts, ensure OAuth-related changes are preserved."
+4. Ask: "The merge has conflicts in these files: [list]. How would you like me to resolve them? You can:
+   - Show you the conflicting sections for review
+   - Provide specific resolution instructions
+   - Guide me through accepting certain changes"
+5. After resolving conflicts:
+   - Stage resolved files: `git add <files>`
+   - Complete merge: `git commit`
+   - Proceed to Step 2
 
-4. Merge upstream/main:
-   ```bash
-   git merge upstream/main --no-edit
-   ```
+**If other errors (exit code 2)**: Report error and ask for guidance.
 
-5. If merge conflicts occur:
-   - List conflicting files
-   - Remind user: "This fork adds OAuth support. When resolving conflicts, ensure OAuth-related changes are preserved."
-   - Ask user: "How would you like to resolve the conflicts in [file]? Please provide guidance."
-   - Wait for user input before proceeding
+### Step 2: Finalize sync
+```bash
+./.claude/commands/sync-upstream-finalize.sh
+```
 
-6. After successful merge:
-   - Push to origin/main
-   - Update beta tag: `git tag -f beta && git push origin beta --force`
-
-7. Report success with summary of changes merged
+This script:
+- Pushes changes to origin/main
+- Updates the beta tag
+- Restores any stashed changes
+- Reports completion summary
